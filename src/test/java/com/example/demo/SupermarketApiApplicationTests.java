@@ -48,21 +48,48 @@ class SupermarketApiApplicationTests {
 	private static UUID idProdutoTeste;
 	private static String nomeProdutoTeste;
 	private static String emailUsuarioTeste;
+	private static String usernameUsuarioTeste;
 	private static String senhaUsuarioTeste;
+	private static String tokenAdminTeste;
 	private static String tokenUsuarioTeste;
 
 	@Test
 	@Order(1)
+	public void autenticarAdminTest() throws Exception {
+
+		var request = new AutenticarUsuarioRequestDto();
+		request.setUsername("admin");
+		request.setSenha("Admin@123");
+
+		MvcResult result = mockMvc.perform(post("/api/usuario/autenticar").contentType("application/json")
+				.content(objectMapper.writeValueAsString(request))).andExpect(status().isOk()).andReturn();
+
+		var content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+		var response = objectMapper.readValue(content, AutenticarUsuarioResponseDto.class);
+
+		assertNotNull(response.getToken());
+		assertEquals("Administrador", response.getPerfil());
+
+		tokenAdminTeste = response.getToken();
+	}
+
+	@Test
+	@Order(2)
 	public void criarUsuarioTest() throws Exception {
 
 		var request = new CriarUsuarioRequestDto();
 		var faker = new Faker();
 
-		request.setNome(faker.name().fullName());
+		request.setNome(faker.name().firstName());
+		request.setSobrenome(faker.name().lastName());
+		request.setUsername(faker.name().username());
 		request.setEmail(faker.internet().emailAddress());
 		request.setSenha("Senha@123");
+		request.setPerfil("Operador");
 
 		MvcResult result = mockMvc.perform(post("/api/usuario/criar").contentType("application/json")
+				.header("Authorization", "Bearer " + tokenAdminTeste)
 				.content(objectMapper.writeValueAsString(request))).andExpect(status().isOk()).andReturn();
 
 		var content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
@@ -71,24 +98,33 @@ class SupermarketApiApplicationTests {
 
 		assertNotNull(response.getId());
 		assertEquals(request.getNome(), response.getNome());
+		assertEquals(request.getSobrenome(), response.getSobrenome());
+		assertEquals(request.getUsername(), response.getUsername());
 		assertEquals(request.getEmail(), response.getEmail());
 		assertEquals("Operador", response.getPerfil());
 
 		emailUsuarioTeste = request.getEmail();
+		usernameUsuarioTeste = request.getUsername();
 		senhaUsuarioTeste = request.getSenha();
 	}
 
 	@Test
-	@Order(2)
+	@Order(3)
 	public void usuarioComEmailDuplicadoTest() throws Exception {
 
 		var request = new CriarUsuarioRequestDto();
-		request.setNome("Outro Usuario Teste");
+		var faker = new Faker();
+
+		request.setNome("Outro");
+		request.setSobrenome("Usuario Teste");
+		request.setUsername(faker.name().username());
 		request.setEmail(emailUsuarioTeste);
 		request.setSenha("Senha@123");
+		request.setPerfil("Operador");
 
 		MvcResult result = mockMvc
 				.perform(post("/api/usuario/criar").contentType("application/json")
+						.header("Authorization", "Bearer " + tokenAdminTeste)
 						.content(objectMapper.writeValueAsString(request)))
 				.andExpect(status().isBadRequest()).andReturn();
 
@@ -98,11 +134,11 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(3)
+	@Order(4)
 	public void credenciaisInvalidasTest() throws Exception {
 
 		var request = new AutenticarUsuarioRequestDto();
-		request.setEmail(emailUsuarioTeste);
+		request.setUsername(usernameUsuarioTeste);
 		request.setSenha("SenhaErrada@123");
 
 		MvcResult result = mockMvc
@@ -116,11 +152,11 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(4)
+	@Order(5)
 	public void autenticarUsuarioTest() throws Exception {
 
 		var request = new AutenticarUsuarioRequestDto();
-		request.setEmail(emailUsuarioTeste);
+		request.setUsername(usernameUsuarioTeste);
 		request.setSenha(senhaUsuarioTeste);
 
 		MvcResult result = mockMvc.perform(post("/api/usuario/autenticar").contentType("application/json")
@@ -131,13 +167,13 @@ class SupermarketApiApplicationTests {
 		var response = objectMapper.readValue(content, AutenticarUsuarioResponseDto.class);
 
 		assertNotNull(response.getToken());
-		assertEquals(emailUsuarioTeste, response.getEmail());
+		assertEquals(usernameUsuarioTeste, response.getUsername());
 
 		tokenUsuarioTeste = response.getToken();
 	}
 
 	@Test
-	@Order(5)
+	@Order(6)
 	public void criarCategoriaTest() throws Exception {
 
 		var request = new CategoriaRequestDto();
@@ -161,7 +197,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(6)
+	@Order(7)
 	public void categoriaComNomeDuplicadoTest() throws Exception {
 
 		var request = new CategoriaRequestDto();
@@ -179,7 +215,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(7)
+	@Order(8)
 	public void criarProdutoTest() throws Exception {
 
 		var request = new ProdutoRequestDto();
@@ -212,7 +248,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(8)
+	@Order(9)
 	public void produtoComNomeDuplicadoTest() throws Exception {
 
 		var request = new ProdutoRequestDto();
@@ -233,7 +269,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(9)
+	@Order(10)
 	public void produtoComEstoqueTest() throws Exception {
 
 		MvcResult result = mockMvc.perform(delete("/api/produtos/" + idProdutoTeste).contentType("application/json")
@@ -247,7 +283,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(10)
+	@Order(11)
 	public void editarProdutoTest() throws Exception {
 
 		var request = new ProdutoRequestDto();
@@ -263,6 +299,8 @@ class SupermarketApiApplicationTests {
 				.header("Authorization", "Bearer " + tokenUsuarioTeste)
 				.content(objectMapper.writeValueAsString(request))).andExpect(status().isOk()).andReturn();
 
+		nomeProdutoTeste = request.getNome();
+
 		var content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 
 		var response = objectMapper.readValue(content, ProdutoResponseDto.class);
@@ -275,7 +313,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(11)
+	@Order(12)
 	public void excluirProdutoTest() throws Exception {
 
 		MvcResult result = mockMvc.perform(delete("/api/produtos/" + idProdutoTeste).contentType("application/json")
@@ -284,11 +322,11 @@ class SupermarketApiApplicationTests {
 
 		String content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-		assertEquals("Produto excluído com sucesso!", content);
+		assertEquals("Produto \"" + nomeProdutoTeste + "\" excluído com sucesso!", content);
 	}
 
 	@Test
-	@Order(12)
+	@Order(13)
 	public void excluirCategoriaTest() throws Exception {
 
 		MvcResult result = mockMvc
@@ -298,7 +336,7 @@ class SupermarketApiApplicationTests {
 
 		String content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-		assertEquals("Categoria excluída com sucesso!", content);
+		assertEquals("Categoria \"" + nomeCategoriaTeste + "\" excluída com sucesso!", content);
 	}
 
 }
