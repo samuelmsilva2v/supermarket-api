@@ -50,7 +50,7 @@ O sistema garante que as regras de negócio sejam seguidas, como a obrigatorieda
 * Spring Data JPA
 * Spring Security
 * JWT
-* SHA256 (para criptografia de senhas)
+* BCrypt (para criptografia de senhas)
 * Hibernate
 * PostgreSQL (produtos, categorias e usuários)
 * Docker (para virtualização do banco de dados)
@@ -198,7 +198,7 @@ The system ensures that business rules are followed, such as mandatory categorie
 * Spring Data JPA
 * Spring Security
 * JWT
-* SHA256 (password encryption)
+* BCrypt (password encryption)
 * Hibernate
 * PostgreSQL (products, categories and users)
 * Docker (for database virtualization)

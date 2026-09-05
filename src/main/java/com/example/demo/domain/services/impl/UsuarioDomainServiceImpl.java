@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
@@ -16,7 +17,6 @@ import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
 import com.example.demo.domain.models.entities.Usuario;
 import com.example.demo.domain.services.interfaces.UsuarioDomainService;
 import com.example.demo.infrastructure.components.JwtTokenComponent;
-import com.example.demo.infrastructure.components.SHA256Component;
 import com.example.demo.infrastructure.repositories.PerfilRepository;
 import com.example.demo.infrastructure.repositories.UsuarioRepository;
 
@@ -30,7 +30,7 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 	private PerfilRepository perfilRepository;
 
 	@Autowired
-	private SHA256Component sha256Component;
+	private PasswordEncoder passwordEncoder;
 
 	@Autowired
 	private JwtTokenComponent jwtTokenComponent;
@@ -54,7 +54,7 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 		usuario.setSobrenome(request.getSobrenome());
 		usuario.setUsername(request.getUsername());
 		usuario.setEmail(request.getEmail());
-		usuario.setSenha(sha256Component.encrypt(request.getSenha()));
+		usuario.setSenha(passwordEncoder.encode(request.getSenha()));
 		usuario.setPerfil(perfil);
 
 		usuarioRepository.save(usuario);
@@ -74,10 +74,9 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 	@Override
 	public AutenticarUsuarioResponseDto autenticarUsuario(AutenticarUsuarioRequestDto request) {
 
-		var usuario = usuarioRepository.findByUsernameAndSenha(request.getUsername(),
-				sha256Component.encrypt(request.getSenha()));
+		var usuario = usuarioRepository.findByUsername(request.getUsername());
 
-		if (usuario == null)
+		if (usuario == null || !passwordEncoder.matches(request.getSenha(), usuario.getSenha()))
 			throw new CredenciaisInvalidasException();
 
 		var response = new AutenticarUsuarioResponseDto();
