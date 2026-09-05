@@ -52,6 +52,12 @@ public class UsuarioController {
 		return usuarioDomainService.consultarUsuarios(username, pagina, tamanho);
 	}
 
+	@Operation(summary = "Serviço para consultar um usuário por ID.")
+	@GetMapping("/{id}")
+	public UsuarioResponseDto getById(@PathVariable UUID id) {
+		return usuarioDomainService.consultarUsuarioPorId(id);
+	}
+
 	@Operation(summary = "Serviço para editar um usuário.")
 	@PutMapping("/{id}")
 	public UsuarioResponseDto put(@PathVariable UUID id, @RequestBody @Valid EditarUsuarioRequestDto request) {

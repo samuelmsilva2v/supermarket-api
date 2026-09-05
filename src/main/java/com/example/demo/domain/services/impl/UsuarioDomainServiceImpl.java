@@ -105,6 +105,15 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 	}
 
 	@Override
+	public UsuarioResponseDto consultarUsuarioPorId(UUID id) {
+
+		var usuario = usuarioRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + id + " não encontrado."));
+
+		return toUsuarioResponseDto(usuario);
+	}
+
+	@Override
 	public UsuarioResponseDto editarUsuario(UUID id, EditarUsuarioRequestDto request) {
 
 		var usuario = usuarioRepository.findById(id)
