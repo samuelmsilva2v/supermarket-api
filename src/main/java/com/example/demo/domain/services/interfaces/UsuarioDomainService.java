@@ -18,6 +18,8 @@ public interface UsuarioDomainService {
 
 	public PaginaResponseDto<UsuarioResponseDto> consultarUsuarios(String username, int pagina, int tamanho);
 
+	public UsuarioResponseDto consultarUsuarioPorId(UUID id);
+
 	public UsuarioResponseDto editarUsuario(UUID id, EditarUsuarioRequestDto request);
 
 }
