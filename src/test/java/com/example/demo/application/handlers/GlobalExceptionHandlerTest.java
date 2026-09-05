@@ -13,6 +13,7 @@ import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
 import com.example.demo.domain.exceptions.ProdutoComNomeDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
+import com.example.demo.domain.exceptions.UsuarioInativoException;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -115,6 +116,15 @@ class GlobalExceptionHandlerTest {
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 		assertEquals("Acesso negado. Usuário não encontrado.", response.getBody());
+	}
+
+	@Test
+	void handleUsuarioInativo_deveRetornarBadRequest() {
+
+		var response = handler.handleUsuarioInativo(new UsuarioInativoException());
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		assertEquals("Usuário inativo. Entre em contato com um administrador.", response.getBody());
 	}
 
 	@Test

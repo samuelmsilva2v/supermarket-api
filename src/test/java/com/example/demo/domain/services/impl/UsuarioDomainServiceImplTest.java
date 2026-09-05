@@ -24,12 +24,14 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.example.demo.application.dtos.AtualizarStatusUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.EditarUsuarioRequestDto;
 import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
+import com.example.demo.domain.exceptions.UsuarioInativoException;
 import com.example.demo.domain.models.entities.Perfil;
 import com.example.demo.domain.models.entities.Usuario;
 import com.example.demo.infrastructure.components.JwtTokenComponent;
@@ -159,6 +161,25 @@ class UsuarioDomainServiceImplTest {
 
 		assertThrows(CredenciaisInvalidasException.class,
 				() -> usuarioDomainService.autenticarUsuario(request));
+	}
+
+	@Test
+	void autenticarUsuario_deveLancarExcecao_quandoUsuarioInativo() {
+
+		var request = new AutenticarUsuarioRequestDto();
+		request.setUsername("joao.silva");
+		request.setSenha("Senha@123");
+
+		var usuario = new Usuario();
+		usuario.setUsername("joao.silva");
+		usuario.setSenha("hash-da-senha");
+		usuario.setPerfil(perfil);
+		usuario.setAtivo(false);
+
+		when(usuarioRepository.findByUsername("joao.silva")).thenReturn(usuario);
+		when(passwordEncoder.matches("Senha@123", "hash-da-senha")).thenReturn(true);
+
+		assertThrows(UsuarioInativoException.class, () -> usuarioDomainService.autenticarUsuario(request));
 	}
 
 	@Test
@@ -317,6 +338,40 @@ class UsuarioDomainServiceImplTest {
 		assertEquals("joao.souza", response.getUsername());
 		assertEquals("joao.souza@teste.com", response.getEmail());
 		assertEquals("Operador", response.getPerfil());
+		verify(usuarioRepository, times(1)).save(usuario);
+	}
+
+	@Test
+	void atualizarStatusUsuario_deveLancarExcecao_quandoUsuarioNaoEncontrado() {
+
+		var id = UUID.randomUUID();
+		var request = new AtualizarStatusUsuarioRequestDto();
+		request.setAtivo(false);
+
+		when(usuarioRepository.findById(id)).thenReturn(Optional.empty());
+
+		assertThrows(EntityNotFoundException.class, () -> usuarioDomainService.atualizarStatusUsuario(id, request));
+
+		verify(usuarioRepository, never()).save(any());
+	}
+
+	@Test
+	void atualizarStatusUsuario_deveInativar_quandoValido() {
+
+		var id = UUID.randomUUID();
+		var usuario = new Usuario();
+		usuario.setId(id);
+		usuario.setPerfil(perfil);
+
+		var request = new AtualizarStatusUsuarioRequestDto();
+		request.setAtivo(false);
+
+		when(usuarioRepository.findById(id)).thenReturn(Optional.of(usuario));
+
+		var response = usuarioDomainService.atualizarStatusUsuario(id, request);
+
+		assertEquals(id, response.getId());
+		assertEquals(false, response.isAtivo());
 		verify(usuarioRepository, times(1)).save(usuario);
 	}
 }

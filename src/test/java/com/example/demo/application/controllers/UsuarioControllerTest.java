@@ -14,6 +14,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 
+import com.example.demo.application.dtos.AtualizarStatusUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioResponseDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
@@ -89,5 +90,22 @@ class UsuarioControllerTest {
 
 		assertEquals(response, result);
 		verify(usuarioDomainService, times(1)).editarUsuario(id, request);
+	}
+
+	@Test
+	void atualizarStatus_deveAtualizarStatusDeUsuario() {
+
+		var id = UUID.randomUUID();
+		var request = new AtualizarStatusUsuarioRequestDto();
+		request.setAtivo(false);
+		var response = new UsuarioResponseDto();
+		response.setId(id);
+
+		when(usuarioDomainService.atualizarStatusUsuario(id, request)).thenReturn(response);
+
+		var result = usuarioController.atualizarStatus(id, request);
+
+		assertEquals(response, result);
+		verify(usuarioDomainService, times(1)).atualizarStatusUsuario(id, request);
 	}
 }

@@ -23,7 +23,7 @@ class CorsConfigTest {
 
 		verify(registry).addMapping("/**");
 		verify(registration).allowedOrigins("http://localhost:4200");
-		verify(registration).allowedMethods("POST", "PUT", "DELETE", "GET");
+		verify(registration).allowedMethods("POST", "PUT", "PATCH", "DELETE", "GET");
 		verify(registration).allowedHeaders("*");
 	}
 }

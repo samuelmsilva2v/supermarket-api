@@ -34,4 +34,7 @@ public class Usuario {
 	@ManyToOne
 	@JoinColumn(name = "perfil_id", nullable = false)
 	private Perfil perfil;
+
+	@Column(nullable = false, columnDefinition = "boolean default true")
+	private boolean ativo = true;
 }

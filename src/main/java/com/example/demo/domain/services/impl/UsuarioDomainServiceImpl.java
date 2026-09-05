@@ -9,6 +9,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.demo.application.dtos.AtualizarStatusUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioResponseDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
@@ -19,6 +20,7 @@ import com.example.demo.application.dtos.UsuarioResponseDto;
 import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
+import com.example.demo.domain.exceptions.UsuarioInativoException;
 import com.example.demo.domain.models.entities.Usuario;
 import com.example.demo.domain.services.interfaces.UsuarioDomainService;
 import com.example.demo.infrastructure.components.JwtTokenComponent;
@@ -86,6 +88,9 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 		if (usuario == null || !passwordEncoder.matches(request.getSenha(), usuario.getSenha()))
 			throw new CredenciaisInvalidasException();
 
+		if (!usuario.isAtivo())
+			throw new UsuarioInativoException();
+
 		var response = new AutenticarUsuarioResponseDto();
 		response.setId(usuario.getId());
 		response.setNome(usuario.getNome());
@@ -140,6 +145,19 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 		return toUsuarioResponseDto(usuario);
 	}
 
+	@Override
+	public UsuarioResponseDto atualizarStatusUsuario(UUID id, AtualizarStatusUsuarioRequestDto request) {
+
+		var usuario = usuarioRepository.findById(id)
+				.orElseThrow(() -> new EntityNotFoundException("Usuário com ID " + id + " não encontrado."));
+
+		usuario.setAtivo(request.getAtivo());
+
+		usuarioRepository.save(usuario);
+
+		return toUsuarioResponseDto(usuario);
+	}
+
 	private UsuarioResponseDto toUsuarioResponseDto(Usuario usuario) {
 		var dto = new UsuarioResponseDto();
 		dto.setId(usuario.getId());
@@ -148,6 +166,7 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 		dto.setUsername(usuario.getUsername());
 		dto.setEmail(usuario.getEmail());
 		dto.setPerfil(usuario.getPerfil().getNome());
+		dto.setAtivo(usuario.isAtivo());
 		return dto;
 	}
 }

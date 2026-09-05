@@ -54,4 +54,12 @@ class DomainExceptionsTest {
 
 		assertEquals("Acesso negado. Usuário não encontrado.", ex.getMessage());
 	}
+
+	@Test
+	void usuarioInativoException_deveConterMensagemPadrao() {
+
+		var ex = new UsuarioInativoException();
+
+		assertEquals("Usuário inativo. Entre em contato com um administrador.", ex.getMessage());
+	}
 }

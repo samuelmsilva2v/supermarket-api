@@ -2,6 +2,7 @@ package com.example.demo.domain.services.interfaces;
 
 import java.util.UUID;
 
+import com.example.demo.application.dtos.AtualizarStatusUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioResponseDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
@@ -21,5 +22,7 @@ public interface UsuarioDomainService {
 	public UsuarioResponseDto consultarUsuarioPorId(UUID id);
 
 	public UsuarioResponseDto editarUsuario(UUID id, EditarUsuarioRequestDto request);
+
+	public UsuarioResponseDto atualizarStatusUsuario(UUID id, AtualizarStatusUsuarioRequestDto request);
 
 }

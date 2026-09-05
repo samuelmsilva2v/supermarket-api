@@ -12,6 +12,7 @@ import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
 import com.example.demo.domain.exceptions.ProdutoComNomeDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
+import com.example.demo.domain.exceptions.UsuarioInativoException;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -65,6 +66,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(CredenciaisInvalidasException.class)
     public ResponseEntity<String> handleCredenciaisInvalidas(CredenciaisInvalidasException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(UsuarioInativoException.class)
+    public ResponseEntity<String> handleUsuarioInativo(UsuarioInativoException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 

@@ -211,6 +211,37 @@ class JwtBearerFilterTest {
 	}
 
 	@Test
+	void doFilter_deveLiberarAtualizacaoDeStatusDeUsuario_quandoPerfilAdministrador() throws Exception {
+
+		var token = buildToken("Administrador", 1_800_000);
+
+		when(request.getMethod()).thenReturn("PATCH");
+		when(request.getRequestURI()).thenReturn("/api/usuario/" + UUID.randomUUID() + "/status");
+		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+		filter.doFilter(request, response, filterChain);
+
+		verify(filterChain, times(1)).doFilter(request, response);
+		verify(response, never()).sendError(anyInt(), anyString());
+	}
+
+	@Test
+	void doFilter_deveRetornar403_quandoAtualizarStatusDeUsuarioComPerfilNaoAdministrador() throws Exception {
+
+		var token = buildToken("Operador", 1_800_000);
+
+		when(request.getMethod()).thenReturn("PATCH");
+		when(request.getRequestURI()).thenReturn("/api/usuario/" + UUID.randomUUID() + "/status");
+		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+		filter.doFilter(request, response, filterChain);
+
+		verify(response, times(1)).sendError(HttpServletResponse.SC_FORBIDDEN,
+				"Acesso restrito a administradores.");
+		verify(filterChain, never()).doFilter(any(), any());
+	}
+
+	@Test
 	void doFilter_deveRetornar401_quandoTokenExpiradoOuInvalido() throws Exception {
 
 		var tokenExpirado = buildToken("Operador", -1_000);
