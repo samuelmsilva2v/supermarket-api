@@ -41,7 +41,7 @@ class JwtBearerFilterTest {
 
 	@BeforeEach
 	void setUp() {
-		filter = new JwtBearerFilter();
+		filter = new JwtBearerFilter(SECRET_KEY);
 	}
 
 	private String buildToken(String perfil, long expirationOffsetMillis) {
