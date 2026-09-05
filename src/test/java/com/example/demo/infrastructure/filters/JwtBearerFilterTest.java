@@ -10,6 +10,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Date;
+import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -138,6 +139,68 @@ class JwtBearerFilterTest {
 
 		when(request.getMethod()).thenReturn("POST");
 		when(request.getRequestURI()).thenReturn("/api/usuario/criar");
+		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+		filter.doFilter(request, response, filterChain);
+
+		verify(response, times(1)).sendError(HttpServletResponse.SC_FORBIDDEN,
+				"Acesso restrito a administradores.");
+		verify(filterChain, never()).doFilter(any(), any());
+	}
+
+	@Test
+	void doFilter_deveLiberarConsultaDeUsuarios_quandoPerfilAdministrador() throws Exception {
+
+		var token = buildToken("Administrador", 1_800_000);
+
+		when(request.getMethod()).thenReturn("GET");
+		when(request.getRequestURI()).thenReturn("/api/usuario");
+		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+		filter.doFilter(request, response, filterChain);
+
+		verify(filterChain, times(1)).doFilter(request, response);
+		verify(response, never()).sendError(anyInt(), anyString());
+	}
+
+	@Test
+	void doFilter_deveRetornar403_quandoConsultarUsuariosComPerfilNaoAdministrador() throws Exception {
+
+		var token = buildToken("Operador", 1_800_000);
+
+		when(request.getMethod()).thenReturn("GET");
+		when(request.getRequestURI()).thenReturn("/api/usuario");
+		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+		filter.doFilter(request, response, filterChain);
+
+		verify(response, times(1)).sendError(HttpServletResponse.SC_FORBIDDEN,
+				"Acesso restrito a administradores.");
+		verify(filterChain, never()).doFilter(any(), any());
+	}
+
+	@Test
+	void doFilter_deveLiberarEdicaoDeUsuario_quandoPerfilAdministrador() throws Exception {
+
+		var token = buildToken("Administrador", 1_800_000);
+
+		when(request.getMethod()).thenReturn("PUT");
+		when(request.getRequestURI()).thenReturn("/api/usuario/" + UUID.randomUUID());
+		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
+
+		filter.doFilter(request, response, filterChain);
+
+		verify(filterChain, times(1)).doFilter(request, response);
+		verify(response, never()).sendError(anyInt(), anyString());
+	}
+
+	@Test
+	void doFilter_deveRetornar403_quandoEditarUsuarioComPerfilNaoAdministrador() throws Exception {
+
+		var token = buildToken("Operador", 1_800_000);
+
+		when(request.getMethod()).thenReturn("PUT");
+		when(request.getRequestURI()).thenReturn("/api/usuario/" + UUID.randomUUID());
 		when(request.getHeader("Authorization")).thenReturn("Bearer " + token);
 
 		filter.doFilter(request, response, filterChain);

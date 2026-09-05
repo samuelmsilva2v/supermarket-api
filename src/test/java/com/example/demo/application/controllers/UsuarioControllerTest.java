@@ -5,16 +5,22 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.UUID;
+
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
 
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioResponseDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioResponseDto;
+import com.example.demo.application.dtos.EditarUsuarioRequestDto;
+import com.example.demo.application.dtos.PaginaResponseDto;
+import com.example.demo.application.dtos.UsuarioResponseDto;
 import com.example.demo.domain.services.interfaces.UsuarioDomainService;
 
 @ExtendWith(MockitoExtension.class)
@@ -54,5 +60,34 @@ class UsuarioControllerTest {
 
 		assertEquals(response, result);
 		verify(usuarioDomainService, times(1)).autenticarUsuario(request);
+	}
+
+	@Test
+	void getByUsername_deveConsultarUsuariosPaginado() {
+
+		var response = new PaginaResponseDto<UsuarioResponseDto>(Page.empty());
+
+		when(usuarioDomainService.consultarUsuarios("joao", 0, 10)).thenReturn(response);
+
+		var result = usuarioController.getByUsername("joao", 0, 10);
+
+		assertEquals(response, result);
+		verify(usuarioDomainService, times(1)).consultarUsuarios("joao", 0, 10);
+	}
+
+	@Test
+	void put_deveEditarUsuario() {
+
+		var id = UUID.randomUUID();
+		var request = new EditarUsuarioRequestDto();
+		var response = new UsuarioResponseDto();
+		response.setId(id);
+
+		when(usuarioDomainService.editarUsuario(id, request)).thenReturn(response);
+
+		var result = usuarioController.put(id, request);
+
+		assertEquals(response, result);
+		verify(usuarioDomainService, times(1)).editarUsuario(id, request);
 	}
 }

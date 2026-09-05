@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -17,10 +20,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
+import com.example.demo.application.dtos.EditarUsuarioRequestDto;
 import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
@@ -29,6 +35,8 @@ import com.example.demo.domain.models.entities.Usuario;
 import com.example.demo.infrastructure.components.JwtTokenComponent;
 import com.example.demo.infrastructure.repositories.PerfilRepository;
 import com.example.demo.infrastructure.repositories.UsuarioRepository;
+
+import jakarta.persistence.EntityNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class UsuarioDomainServiceImplTest {
@@ -177,5 +185,138 @@ class UsuarioDomainServiceImplTest {
 		assertEquals("joao.silva", response.getUsername());
 		assertEquals("Operador", response.getPerfil());
 		assertEquals("token-jwt", response.getToken());
+	}
+
+	@Test
+	void consultarUsuarios_deveRetornarPaginaMapeada() {
+
+		var usuario = new Usuario();
+		usuario.setId(UUID.randomUUID());
+		usuario.setNome("João");
+		usuario.setSobrenome("Silva");
+		usuario.setUsername("joao.silva");
+		usuario.setEmail("joao@teste.com");
+		usuario.setPerfil(perfil);
+
+		var page = new PageImpl<>(List.of(usuario), PageRequest.of(0, 10), 1);
+
+		when(usuarioRepository.findByUsernameContainingIgnoreCase(eq("joao"), any())).thenReturn(page);
+
+		var response = usuarioDomainService.consultarUsuarios("joao", 0, 10);
+
+		assertEquals(1, response.getConteudo().size());
+		assertEquals("joao.silva", response.getConteudo().get(0).getUsername());
+		assertEquals("Operador", response.getConteudo().get(0).getPerfil());
+		assertEquals(1, response.getTotalElementos());
+	}
+
+	@Test
+	void editarUsuario_deveLancarExcecao_quandoUsuarioNaoEncontrado() {
+
+		var id = UUID.randomUUID();
+		var request = new EditarUsuarioRequestDto();
+
+		when(usuarioRepository.findById(id)).thenReturn(Optional.empty());
+
+		assertThrows(EntityNotFoundException.class, () -> usuarioDomainService.editarUsuario(id, request));
+
+		verify(usuarioRepository, never()).save(any());
+	}
+
+	@Test
+	void editarUsuario_deveLancarExcecao_quandoEmailJaCadastradoParaOutroUsuario() {
+
+		var id = UUID.randomUUID();
+		var usuario = new Usuario();
+		usuario.setId(id);
+
+		var request = new EditarUsuarioRequestDto();
+		request.setEmail("joao@teste.com");
+		request.setUsername("joao.silva");
+
+		when(usuarioRepository.findById(id)).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.existsByEmailAndIdNot("joao@teste.com", id)).thenReturn(true);
+
+		assertThrows(UsuarioComEmailDuplicadoException.class,
+				() -> usuarioDomainService.editarUsuario(id, request));
+
+		verify(usuarioRepository, never()).save(any());
+	}
+
+	@Test
+	void editarUsuario_deveLancarExcecao_quandoUsernameJaCadastradoParaOutroUsuario() {
+
+		var id = UUID.randomUUID();
+		var usuario = new Usuario();
+		usuario.setId(id);
+
+		var request = new EditarUsuarioRequestDto();
+		request.setEmail("joao@teste.com");
+		request.setUsername("joao.silva");
+
+		when(usuarioRepository.findById(id)).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.existsByEmailAndIdNot("joao@teste.com", id)).thenReturn(false);
+		when(usuarioRepository.existsByUsernameAndIdNot("joao.silva", id)).thenReturn(true);
+
+		assertThrows(UsuarioComUsernameDuplicadoException.class,
+				() -> usuarioDomainService.editarUsuario(id, request));
+
+		verify(usuarioRepository, never()).save(any());
+	}
+
+	@Test
+	void editarUsuario_deveLancarExcecao_quandoPerfilInvalido() {
+
+		var id = UUID.randomUUID();
+		var usuario = new Usuario();
+		usuario.setId(id);
+
+		var request = new EditarUsuarioRequestDto();
+		request.setEmail("joao@teste.com");
+		request.setUsername("joao.silva");
+		request.setPerfil("Operador");
+
+		when(usuarioRepository.findById(id)).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.existsByEmailAndIdNot("joao@teste.com", id)).thenReturn(false);
+		when(usuarioRepository.existsByUsernameAndIdNot("joao.silva", id)).thenReturn(false);
+		when(perfilRepository.findByNome("Operador")).thenReturn(null);
+
+		assertThrows(IllegalArgumentException.class, () -> usuarioDomainService.editarUsuario(id, request));
+
+		verify(usuarioRepository, never()).save(any());
+	}
+
+	@Test
+	void editarUsuario_deveEditar_quandoValido() {
+
+		var id = UUID.randomUUID();
+		var usuario = new Usuario();
+		usuario.setId(id);
+		usuario.setNome("João");
+		usuario.setSobrenome("Silva");
+		usuario.setUsername("joao.silva");
+		usuario.setEmail("joao@teste.com");
+		usuario.setPerfil(perfil);
+
+		var request = new EditarUsuarioRequestDto();
+		request.setNome("João");
+		request.setSobrenome("Souza");
+		request.setUsername("joao.souza");
+		request.setEmail("joao.souza@teste.com");
+		request.setPerfil("Operador");
+
+		when(usuarioRepository.findById(id)).thenReturn(Optional.of(usuario));
+		when(usuarioRepository.existsByEmailAndIdNot("joao.souza@teste.com", id)).thenReturn(false);
+		when(usuarioRepository.existsByUsernameAndIdNot("joao.souza", id)).thenReturn(false);
+		when(perfilRepository.findByNome("Operador")).thenReturn(perfil);
+
+		var response = usuarioDomainService.editarUsuario(id, request);
+
+		assertEquals(id, response.getId());
+		assertEquals("Souza", response.getSobrenome());
+		assertEquals("joao.souza", response.getUsername());
+		assertEquals("joao.souza@teste.com", response.getEmail());
+		assertEquals("Operador", response.getPerfil());
+		verify(usuarioRepository, times(1)).save(usuario);
 	}
 }
