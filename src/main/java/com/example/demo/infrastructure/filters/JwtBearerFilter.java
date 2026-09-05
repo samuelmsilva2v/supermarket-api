@@ -15,14 +15,18 @@ import jakarta.servlet.http.HttpServletResponse;
 
 public class JwtBearerFilter extends GenericFilterBean {
 
+	private final String secretKey;
+
+	public JwtBearerFilter(String secretKey) {
+		this.secretKey = secretKey;
+	}
+
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
 
 		final HttpServletRequest request = (HttpServletRequest) servletRequest;
 		final HttpServletResponse response = (HttpServletResponse) servletResponse;
-
-		var secretKey = "468041be-f345-4188-8136-4bdeef74b376";
 
 		if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
 			response.setStatus(HttpServletResponse.SC_OK);

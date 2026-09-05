@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.UUID;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.demo.domain.models.entities.Perfil;
 import com.example.demo.domain.models.entities.Usuario;
@@ -19,6 +21,11 @@ class JwtTokenComponentTest {
 	private static final String SECRET_KEY = "468041be-f345-4188-8136-4bdeef74b376";
 
 	private final JwtTokenComponent jwtTokenComponent = new JwtTokenComponent();
+
+	@BeforeEach
+	void setUp() {
+		ReflectionTestUtils.setField(jwtTokenComponent, "secretKey", SECRET_KEY);
+	}
 
 	@Test
 	void getToken_deveGerarTokenValidoComSubjectEPerfil() {
