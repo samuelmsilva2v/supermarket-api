@@ -17,6 +17,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
@@ -26,7 +27,6 @@ import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
 import com.example.demo.domain.models.entities.Perfil;
 import com.example.demo.domain.models.entities.Usuario;
 import com.example.demo.infrastructure.components.JwtTokenComponent;
-import com.example.demo.infrastructure.components.SHA256Component;
 import com.example.demo.infrastructure.repositories.PerfilRepository;
 import com.example.demo.infrastructure.repositories.UsuarioRepository;
 
@@ -40,7 +40,7 @@ class UsuarioDomainServiceImplTest {
 	private PerfilRepository perfilRepository;
 
 	@Mock
-	private SHA256Component sha256Component;
+	private PasswordEncoder passwordEncoder;
 
 	@Mock
 	private JwtTokenComponent jwtTokenComponent;
@@ -107,7 +107,7 @@ class UsuarioDomainServiceImplTest {
 		when(usuarioRepository.findByEmail("joao@teste.com")).thenReturn(null);
 		when(usuarioRepository.findByUsername("joao.silva")).thenReturn(null);
 		when(perfilRepository.findByNome("Operador")).thenReturn(perfil);
-		when(sha256Component.encrypt("Senha@123")).thenReturn("hash-da-senha");
+		when(passwordEncoder.encode("Senha@123")).thenReturn("hash-da-senha");
 
 		var response = usuarioDomainService.criarUsuario(criarRequest);
 
@@ -122,14 +122,32 @@ class UsuarioDomainServiceImplTest {
 	}
 
 	@Test
-	void autenticarUsuario_deveLancarExcecao_quandoCredenciaisInvalidas() {
+	void autenticarUsuario_deveLancarExcecao_quandoUsuarioNaoExiste() {
 
 		var request = new AutenticarUsuarioRequestDto();
 		request.setUsername("joao.silva");
 		request.setSenha("senhaErrada1");
 
-		when(sha256Component.encrypt("senhaErrada1")).thenReturn("hash-errado");
-		when(usuarioRepository.findByUsernameAndSenha("joao.silva", "hash-errado")).thenReturn(null);
+		when(usuarioRepository.findByUsername("joao.silva")).thenReturn(null);
+
+		assertThrows(CredenciaisInvalidasException.class,
+				() -> usuarioDomainService.autenticarUsuario(request));
+	}
+
+	@Test
+	void autenticarUsuario_deveLancarExcecao_quandoSenhaInvalida() {
+
+		var request = new AutenticarUsuarioRequestDto();
+		request.setUsername("joao.silva");
+		request.setSenha("senhaErrada1");
+
+		var usuario = new Usuario();
+		usuario.setUsername("joao.silva");
+		usuario.setSenha("hash-da-senha");
+		usuario.setPerfil(perfil);
+
+		when(usuarioRepository.findByUsername("joao.silva")).thenReturn(usuario);
+		when(passwordEncoder.matches("senhaErrada1", "hash-da-senha")).thenReturn(false);
 
 		assertThrows(CredenciaisInvalidasException.class,
 				() -> usuarioDomainService.autenticarUsuario(request));
@@ -147,10 +165,11 @@ class UsuarioDomainServiceImplTest {
 		usuario.setNome("João");
 		usuario.setUsername("joao.silva");
 		usuario.setEmail("joao@teste.com");
+		usuario.setSenha("hash-da-senha");
 		usuario.setPerfil(perfil);
 
-		when(sha256Component.encrypt("Senha@123")).thenReturn("hash-da-senha");
-		when(usuarioRepository.findByUsernameAndSenha("joao.silva", "hash-da-senha")).thenReturn(usuario);
+		when(usuarioRepository.findByUsername("joao.silva")).thenReturn(usuario);
+		when(passwordEncoder.matches("Senha@123", "hash-da-senha")).thenReturn(true);
 		when(jwtTokenComponent.getToken(usuario)).thenReturn("token-jwt");
 
 		var response = usuarioDomainService.autenticarUsuario(request);

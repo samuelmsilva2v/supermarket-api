@@ -17,6 +17,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.util.ReflectionTestUtils;
 
 import com.example.demo.domain.models.entities.Perfil;
@@ -37,7 +38,7 @@ class LoadDataComponentTest {
 	private UsuarioRepository usuarioRepository;
 
 	@Mock
-	private SHA256Component sha256Component;
+	private PasswordEncoder passwordEncoder;
 
 	@InjectMocks
 	private LoadDataComponent loadDataComponent;
@@ -56,7 +57,7 @@ class LoadDataComponentTest {
 
 		when(perfilRepository.existsById(any(UUID.class))).thenReturn(false);
 		when(usuarioRepository.findByUsername("admin")).thenReturn(null);
-		when(sha256Component.encrypt("Admin@123")).thenReturn("hash-admin");
+		when(passwordEncoder.encode("Admin@123")).thenReturn("hash-admin");
 		when(perfilRepository.findByNome("Administrador")).thenReturn(new Perfil());
 
 		loadDataComponent.run(null);
@@ -81,7 +82,7 @@ class LoadDataComponentTest {
 
 		when(perfilRepository.existsById(any(UUID.class))).thenReturn(true);
 		when(usuarioRepository.findByUsername("admin")).thenReturn(null);
-		when(sha256Component.encrypt("Admin@123")).thenReturn("hash-admin");
+		when(passwordEncoder.encode("Admin@123")).thenReturn("hash-admin");
 		when(perfilRepository.findByNome("Administrador")).thenReturn(new Perfil());
 
 		loadDataComponent.run(null);

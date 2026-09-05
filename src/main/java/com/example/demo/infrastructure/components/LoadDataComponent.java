@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import com.example.demo.domain.models.entities.Perfil;
@@ -23,7 +24,7 @@ public class LoadDataComponent implements ApplicationRunner {
 	private UsuarioRepository usuarioRepository;
 
 	@Autowired
-	private SHA256Component sha256Component;
+	private PasswordEncoder passwordEncoder;
 
 	@Value("${app.admin.nome}")
 	private String adminNome;
@@ -73,7 +74,7 @@ public class LoadDataComponent implements ApplicationRunner {
 		usuario.setSobrenome(adminSobrenome);
 		usuario.setUsername(adminUsername);
 		usuario.setEmail(adminEmail);
-		usuario.setSenha(sha256Component.encrypt(adminSenha));
+		usuario.setSenha(passwordEncoder.encode(adminSenha));
 		usuario.setPerfil(perfilRepository.findByNome("Administrador"));
 
 		usuarioRepository.save(usuario);
