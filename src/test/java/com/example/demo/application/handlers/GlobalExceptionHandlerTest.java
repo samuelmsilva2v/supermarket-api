@@ -9,6 +9,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.domain.exceptions.CategoriaComNomeDuplicadoException;
 import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
+import com.example.demo.domain.exceptions.EstoqueInsuficienteException;
 import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
 import com.example.demo.domain.exceptions.ProdutoComNomeDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
@@ -116,6 +117,15 @@ class GlobalExceptionHandlerTest {
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 		assertEquals("Acesso negado. Usuário não encontrado.", response.getBody());
+	}
+
+	@Test
+	void handleEstoqueInsuficiente_deveRetornarBadRequest() {
+
+		var response = handler.handleEstoqueInsuficiente(new EstoqueInsuficienteException("Arroz", 5, 10));
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+		assertEquals("Estoque insuficiente para o produto 'Arroz': disponível 5, solicitado 10.", response.getBody());
 	}
 
 	@Test

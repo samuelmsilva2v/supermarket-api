@@ -62,4 +62,12 @@ class DomainExceptionsTest {
 
 		assertEquals("Usuário inativo. Entre em contato com um administrador.", ex.getMessage());
 	}
+
+	@Test
+	void estoqueInsuficienteException_deveConterMensagemComNomeEQuantidades() {
+
+		var ex = new EstoqueInsuficienteException("Arroz", 5, 10);
+
+		assertEquals("Estoque insuficiente para o produto 'Arroz': disponível 5, solicitado 10.", ex.getMessage());
+	}
 }

@@ -8,6 +8,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.example.demo.domain.exceptions.CategoriaComNomeDuplicadoException;
 import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
+import com.example.demo.domain.exceptions.EstoqueInsuficienteException;
 import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
 import com.example.demo.domain.exceptions.ProdutoComNomeDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
@@ -51,6 +52,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(ProdutoComEstoqueException.class)
     public ResponseEntity<String> handleProdutoComEstoque(ProdutoComEstoqueException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(EstoqueInsuficienteException.class)
+    public ResponseEntity<String> handleEstoqueInsuficiente(EstoqueInsuficienteException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 

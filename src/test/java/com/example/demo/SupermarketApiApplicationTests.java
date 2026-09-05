@@ -3,6 +3,7 @@ package com.example.demo;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -29,6 +30,8 @@ import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioResponseDto;
 import com.example.demo.application.dtos.ProdutoRequestDto;
 import com.example.demo.application.dtos.ProdutoResponseDto;
+import com.example.demo.application.dtos.RegistrarMovimentacaoEstoqueRequestDto;
+import com.example.demo.domain.models.entities.TipoMovimentacao;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 
@@ -249,6 +252,102 @@ class SupermarketApiApplicationTests {
 
 	@Test
 	@Order(9)
+	public void registrarMovimentacaoEntradaTest() throws Exception {
+
+		var request = new RegistrarMovimentacaoEstoqueRequestDto();
+		request.setProdutoId(idProdutoTeste);
+		request.setTipo(TipoMovimentacao.ENTRADA);
+		request.setQuantidade(5);
+		request.setMotivo("Reposição de fornecedor");
+
+		MvcResult result = mockMvc
+				.perform(post("/api/movimentacoes-estoque").contentType("application/json")
+						.header("Authorization", "Bearer " + tokenUsuarioTeste)
+						.content(objectMapper.writeValueAsString(request)))
+				.andExpect(status().isOk()).andReturn();
+
+		var content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		var response = objectMapper.readTree(content);
+
+		assertEquals("ENTRADA", response.get("tipo").asText());
+		assertEquals(5, response.get("quantidade").asInt());
+		assertEquals(idProdutoTeste.toString(), response.get("produtoId").asText());
+
+		MvcResult produtoResult = mockMvc
+				.perform(get("/api/produtos/" + idProdutoTeste).header("Authorization", "Bearer " + tokenUsuarioTeste))
+				.andExpect(status().isOk()).andReturn();
+
+		var produto = objectMapper.readValue(produtoResult.getResponse().getContentAsString(StandardCharsets.UTF_8),
+				ProdutoResponseDto.class);
+
+		assertEquals(15, produto.getQuantidade());
+	}
+
+	@Test
+	@Order(10)
+	public void registrarMovimentacaoSaidaTest() throws Exception {
+
+		var request = new RegistrarMovimentacaoEstoqueRequestDto();
+		request.setProdutoId(idProdutoTeste);
+		request.setTipo(TipoMovimentacao.SAIDA);
+		request.setQuantidade(3);
+		request.setMotivo("Venda no caixa");
+
+		mockMvc.perform(post("/api/movimentacoes-estoque").contentType("application/json")
+				.header("Authorization", "Bearer " + tokenUsuarioTeste)
+				.content(objectMapper.writeValueAsString(request))).andExpect(status().isOk());
+
+		MvcResult produtoResult = mockMvc
+				.perform(get("/api/produtos/" + idProdutoTeste).header("Authorization", "Bearer " + tokenUsuarioTeste))
+				.andExpect(status().isOk()).andReturn();
+
+		var produto = objectMapper.readValue(produtoResult.getResponse().getContentAsString(StandardCharsets.UTF_8),
+				ProdutoResponseDto.class);
+
+		assertEquals(12, produto.getQuantidade());
+	}
+
+	@Test
+	@Order(11)
+	public void movimentacaoComEstoqueInsuficienteTest() throws Exception {
+
+		var request = new RegistrarMovimentacaoEstoqueRequestDto();
+		request.setProdutoId(idProdutoTeste);
+		request.setTipo(TipoMovimentacao.SAIDA);
+		request.setQuantidade(999);
+		request.setMotivo("Tentativa de saída maior que o estoque");
+
+		MvcResult result = mockMvc
+				.perform(post("/api/movimentacoes-estoque").contentType("application/json")
+						.header("Authorization", "Bearer " + tokenUsuarioTeste)
+						.content(objectMapper.writeValueAsString(request)))
+				.andExpect(status().isBadRequest()).andReturn();
+
+		String content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+
+		assertEquals("Estoque insuficiente para o produto '" + nomeProdutoTeste + "': disponível 12, solicitado 999.",
+				content);
+	}
+
+	@Test
+	@Order(12)
+	public void consultarHistoricoMovimentacaoTest() throws Exception {
+
+		MvcResult result = mockMvc
+				.perform(get("/api/movimentacoes-estoque/produto/" + idProdutoTeste)
+						.header("Authorization", "Bearer " + tokenUsuarioTeste))
+				.andExpect(status().isOk()).andReturn();
+
+		var content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
+		var response = objectMapper.readTree(content);
+
+		assertEquals(2, response.get("totalElementos").asInt());
+		assertEquals("SAIDA", response.get("conteudo").get(0).get("tipo").asText());
+		assertEquals("ENTRADA", response.get("conteudo").get(1).get("tipo").asText());
+	}
+
+	@Test
+	@Order(13)
 	public void produtoComNomeDuplicadoTest() throws Exception {
 
 		var request = new ProdutoRequestDto();
@@ -269,7 +368,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(10)
+	@Order(14)
 	public void produtoComEstoqueTest() throws Exception {
 
 		MvcResult result = mockMvc.perform(delete("/api/produtos/" + idProdutoTeste).contentType("application/json")
@@ -278,12 +377,12 @@ class SupermarketApiApplicationTests {
 
 		String content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
 
-		assertEquals("Não é possível excluir o produto '" + nomeProdutoTeste + "' porque ainda possui " + 10
+		assertEquals("Não é possível excluir o produto '" + nomeProdutoTeste + "' porque ainda possui " + 12
 				+ " unidades em estoque.", content);
 	}
 
 	@Test
-	@Order(11)
+	@Order(15)
 	public void editarProdutoTest() throws Exception {
 
 		var request = new ProdutoRequestDto();
@@ -313,7 +412,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(12)
+	@Order(16)
 	public void excluirProdutoTest() throws Exception {
 
 		MvcResult result = mockMvc.perform(delete("/api/produtos/" + idProdutoTeste).contentType("application/json")
@@ -326,7 +425,7 @@ class SupermarketApiApplicationTests {
 	}
 
 	@Test
-	@Order(13)
+	@Order(17)
 	public void excluirCategoriaTest() throws Exception {
 
 		MvcResult result = mockMvc
