@@ -13,7 +13,7 @@ import lombok.Data;
 
 @Entity
 @Data
-public class Categoria {
+public class Categoria extends Auditable {
 
 	@Id
 	private UUID id;

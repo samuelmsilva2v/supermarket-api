@@ -1,5 +1,6 @@
 package com.example.demo.application.dtos;
 
+import java.time.Instant;
 import java.util.UUID;
 
 import lombok.Data;
@@ -14,4 +15,8 @@ public class UsuarioResponseDto {
 	private String email;
 	private String perfil;
 	private boolean ativo;
+	private Instant createdAt;
+	private Instant updatedAt;
+	private String createdBy;
+	private String updatedBy;
 }

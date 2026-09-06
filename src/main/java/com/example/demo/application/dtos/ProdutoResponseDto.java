@@ -1,6 +1,7 @@
 package com.example.demo.application.dtos;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.UUID;
 
 import com.example.demo.domain.models.entities.UnidadeMedida;
@@ -16,4 +17,8 @@ public class ProdutoResponseDto {
 	private Integer quantidade;
 	private UnidadeMedida unidadeMedida;
 	private CategoriaResponseDto categoria;
+	private Instant createdAt;
+	private Instant updatedAt;
+	private String createdBy;
+	private String updatedBy;
 }

@@ -14,7 +14,7 @@ import lombok.Data;
 
 @Entity
 @Data
-public class Produto {
+public class Produto extends Auditable {
 
 	@Id
 	private UUID id;

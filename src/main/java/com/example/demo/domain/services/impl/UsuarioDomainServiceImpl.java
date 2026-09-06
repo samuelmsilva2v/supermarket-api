@@ -167,6 +167,10 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 		dto.setEmail(usuario.getEmail());
 		dto.setPerfil(usuario.getPerfil().getNome());
 		dto.setAtivo(usuario.isAtivo());
+		dto.setCreatedAt(usuario.getCreatedAt());
+		dto.setUpdatedAt(usuario.getUpdatedAt());
+		dto.setCreatedBy(usuario.getCreatedBy());
+		dto.setUpdatedBy(usuario.getUpdatedBy());
 		return dto;
 	}
 }
