@@ -3,6 +3,8 @@ package com.example.demo.application.dtos;
 import java.math.BigDecimal;
 import java.util.UUID;
 
+import com.example.demo.domain.models.entities.UnidadeMedida;
+
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
@@ -26,7 +28,10 @@ public class ProdutoRequestDto {
 	@NotNull(message = "A quantidade do produto é obrigatória")
     @Min(value = 0, message = "A quantidade do produto não pode ser negativa")
 	private Integer quantidade;
-	
+
+	@NotNull(message = "A unidade de medida do produto é obrigatória")
+	private UnidadeMedida unidadeMedida;
+
 	@NotNull(message = "A categoria do produto é obrigatória")
 	private UUID categoriaId;
 }

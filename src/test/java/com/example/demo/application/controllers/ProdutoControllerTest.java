@@ -19,6 +19,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import com.example.demo.application.dtos.PaginaResponseDto;
 import com.example.demo.application.dtos.ProdutoRequestDto;
 import com.example.demo.application.dtos.ProdutoResponseDto;
+import com.example.demo.domain.models.entities.UnidadeMedida;
 import com.example.demo.domain.services.interfaces.ProdutoDomainService;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,6 +42,7 @@ class ProdutoControllerTest {
 		request.setNome("Suco de Laranja");
 		request.setPreco(BigDecimal.TEN);
 		request.setQuantidade(5);
+		request.setUnidadeMedida(UnidadeMedida.UNIDADE);
 		request.setCategoriaId(UUID.randomUUID());
 		response = new ProdutoResponseDto();
 		response.setId(id);

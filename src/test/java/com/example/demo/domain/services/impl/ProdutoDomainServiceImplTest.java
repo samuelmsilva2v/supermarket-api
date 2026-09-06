@@ -30,6 +30,7 @@ import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
 import com.example.demo.domain.exceptions.ProdutoComNomeDuplicadoException;
 import com.example.demo.domain.models.entities.Categoria;
 import com.example.demo.domain.models.entities.Produto;
+import com.example.demo.domain.models.entities.UnidadeMedida;
 import com.example.demo.infrastructure.repositories.CategoriaRepository;
 import com.example.demo.infrastructure.repositories.ProdutoRepository;
 
@@ -69,6 +70,7 @@ class ProdutoDomainServiceImplTest {
 		request.setNome("Suco de Laranja");
 		request.setPreco(BigDecimal.TEN);
 		request.setQuantidade(5);
+		request.setUnidadeMedida(UnidadeMedida.UNIDADE);
 		request.setCategoriaId(idCategoria);
 
 		produto = new Produto();
@@ -76,6 +78,7 @@ class ProdutoDomainServiceImplTest {
 		produto.setNome("Suco de Laranja");
 		produto.setPreco(BigDecimal.TEN);
 		produto.setQuantidade(5);
+		produto.setUnidadeMedida(UnidadeMedida.UNIDADE);
 		produto.setCategoria(categoria);
 	}
 

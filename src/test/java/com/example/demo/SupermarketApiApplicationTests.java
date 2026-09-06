@@ -32,6 +32,7 @@ import com.example.demo.application.dtos.ProdutoRequestDto;
 import com.example.demo.application.dtos.ProdutoResponseDto;
 import com.example.demo.application.dtos.RegistrarMovimentacaoEstoqueRequestDto;
 import com.example.demo.domain.models.entities.TipoMovimentacao;
+import com.example.demo.domain.models.entities.UnidadeMedida;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.javafaker.Faker;
 
@@ -228,6 +229,7 @@ class SupermarketApiApplicationTests {
 		double precoDouble = faker.number().randomDouble(2, 1, 1000);
 		request.setPreco(BigDecimal.valueOf(precoDouble));
 		request.setQuantidade(10);
+		request.setUnidadeMedida(UnidadeMedida.UNIDADE);
 		request.setCategoriaId(idCategoriaTeste);
 
 		MvcResult result = mockMvc.perform(
@@ -244,6 +246,7 @@ class SupermarketApiApplicationTests {
 		assertEquals(request.getNome(), response.getNome());
 		assertEquals(request.getPreco(), response.getPreco());
 		assertEquals(request.getQuantidade(), response.getQuantidade());
+		assertEquals(request.getUnidadeMedida(), response.getUnidadeMedida());
 		assertEquals(request.getCategoriaId(), response.getCategoria().getId());
 
 		idProdutoTeste = response.getId();
@@ -354,6 +357,7 @@ class SupermarketApiApplicationTests {
 		request.setNome(nomeProdutoTeste);
 		request.setPreco(BigDecimal.valueOf(10));
 		request.setQuantidade(10);
+		request.setUnidadeMedida(UnidadeMedida.UNIDADE);
 		request.setCategoriaId(idCategoriaTeste);
 
 		MvcResult result = mockMvc
@@ -392,6 +396,7 @@ class SupermarketApiApplicationTests {
 		double precoDouble = faker.number().randomDouble(2, 1, 1000);
 		request.setPreco(BigDecimal.valueOf(precoDouble));
 		request.setQuantidade(0);
+		request.setUnidadeMedida(UnidadeMedida.KG);
 		request.setCategoriaId(idCategoriaTeste);
 
 		MvcResult result = mockMvc.perform(put("/api/produtos/" + idProdutoTeste).contentType("application/json")
@@ -408,6 +413,7 @@ class SupermarketApiApplicationTests {
 		assertEquals(request.getNome(), response.getNome());
 		assertEquals(request.getPreco(), response.getPreco());
 		assertEquals(request.getQuantidade(), response.getQuantidade());
+		assertEquals(request.getUnidadeMedida(), response.getUnidadeMedida());
 		assertEquals(request.getCategoriaId(), response.getCategoria().getId());
 	}
 

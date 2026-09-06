@@ -66,6 +66,7 @@ public class ProdutoDomainServiceImpl implements ProdutoDomainService {
 		produto.setNome(request.getNome());
 		produto.setPreco(request.getPreco());
 		produto.setQuantidade(request.getQuantidade());
+		produto.setUnidadeMedida(request.getUnidadeMedida());
 		produto.setCategoria(categoriaRepository.findById(request.getCategoriaId()).get());
 
 		produtoRepository.save(produto);
