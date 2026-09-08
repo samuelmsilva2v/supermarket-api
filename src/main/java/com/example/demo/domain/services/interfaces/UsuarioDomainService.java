@@ -9,6 +9,7 @@ import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioResponseDto;
 import com.example.demo.application.dtos.EditarUsuarioRequestDto;
 import com.example.demo.application.dtos.PaginaResponseDto;
+import com.example.demo.application.dtos.UsuarioFiltroRequestDto;
 import com.example.demo.application.dtos.UsuarioResponseDto;
 
 public interface UsuarioDomainService {
@@ -17,7 +18,8 @@ public interface UsuarioDomainService {
 
 	public AutenticarUsuarioResponseDto autenticarUsuario(AutenticarUsuarioRequestDto request);
 
-	public PaginaResponseDto<UsuarioResponseDto> consultarUsuarios(String username, int pagina, int tamanho);
+	public PaginaResponseDto<UsuarioResponseDto> consultarUsuariosPaginado(UsuarioFiltroRequestDto filtro, int pagina,
+			int tamanho);
 
 	public UsuarioResponseDto consultarUsuarioPorId(UUID id);
 

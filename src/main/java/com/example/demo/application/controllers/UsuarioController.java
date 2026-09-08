@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,6 +21,7 @@ import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioResponseDto;
 import com.example.demo.application.dtos.EditarUsuarioRequestDto;
 import com.example.demo.application.dtos.PaginaResponseDto;
+import com.example.demo.application.dtos.UsuarioFiltroRequestDto;
 import com.example.demo.application.dtos.UsuarioResponseDto;
 import com.example.demo.domain.services.interfaces.UsuarioDomainService;
 
@@ -45,13 +47,13 @@ public class UsuarioController {
 		return usuarioDomainService.autenticarUsuario(request);
 	}
 
-	@Operation(summary = "Serviço para consultar usuários por username, paginado.")
+	@Operation(summary = "Serviço para consultar usuários por filtros (username, nome, status, perfil), paginado.")
 	@GetMapping
-	public PaginaResponseDto<UsuarioResponseDto> getByUsername(
-			@RequestParam(defaultValue = "") String username,
+	public PaginaResponseDto<UsuarioResponseDto> getByFiltro(
+			@ModelAttribute UsuarioFiltroRequestDto filtro,
 			@RequestParam(defaultValue = "0") int pagina,
 			@RequestParam(defaultValue = "10") int tamanho) {
-		return usuarioDomainService.consultarUsuarios(username, pagina, tamanho);
+		return usuarioDomainService.consultarUsuariosPaginado(filtro, pagina, tamanho);
 	}
 
 	@Operation(summary = "Serviço para consultar um usuário por ID.")

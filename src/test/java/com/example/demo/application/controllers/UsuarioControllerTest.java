@@ -21,6 +21,7 @@ import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioResponseDto;
 import com.example.demo.application.dtos.EditarUsuarioRequestDto;
 import com.example.demo.application.dtos.PaginaResponseDto;
+import com.example.demo.application.dtos.UsuarioFiltroRequestDto;
 import com.example.demo.application.dtos.UsuarioResponseDto;
 import com.example.demo.domain.services.interfaces.UsuarioDomainService;
 
@@ -64,16 +65,18 @@ class UsuarioControllerTest {
 	}
 
 	@Test
-	void getByUsername_deveConsultarUsuariosPaginado() {
+	void getByFiltro_deveConsultarUsuariosPaginado() {
 
 		var response = new PaginaResponseDto<UsuarioResponseDto>(Page.empty());
+		var filtro = new UsuarioFiltroRequestDto();
+		filtro.setUsername("joao");
 
-		when(usuarioDomainService.consultarUsuarios("joao", 0, 10)).thenReturn(response);
+		when(usuarioDomainService.consultarUsuariosPaginado(filtro, 0, 10)).thenReturn(response);
 
-		var result = usuarioController.getByUsername("joao", 0, 10);
+		var result = usuarioController.getByFiltro(filtro, 0, 10);
 
 		assertEquals(response, result);
-		verify(usuarioDomainService, times(1)).consultarUsuarios("joao", 0, 10);
+		verify(usuarioDomainService, times(1)).consultarUsuariosPaginado(filtro, 0, 10);
 	}
 
 	@Test

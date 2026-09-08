@@ -23,7 +23,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 
+import com.example.demo.application.dtos.ProdutoFiltroRequestDto;
 import com.example.demo.application.dtos.ProdutoRequestDto;
 import com.example.demo.application.dtos.ProdutoResponseDto;
 import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
@@ -242,17 +244,19 @@ class ProdutoDomainServiceImplTest {
 	}
 
 	@Test
-	void consultarProdutoPorNome_deveRetornarPaginaMapeada() {
+	void consultarProdutosPaginado_deveRetornarPaginaMapeada() {
 
 		var responseDto = new ProdutoResponseDto();
 		responseDto.setNome("Suco de Laranja");
 
 		var page = new PageImpl<>(List.of(produto), PageRequest.of(0, 10), 1);
+		var filtro = new ProdutoFiltroRequestDto();
+		filtro.setNome("Suco");
 
-		when(produtoRepository.findByNomeContaining(eq("Suco"), any())).thenReturn(page);
+		when(produtoRepository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
 		when(modelMapper.map(produto, ProdutoResponseDto.class)).thenReturn(responseDto);
 
-		var response = produtoDomainService.consultarProdutoPorNome("Suco", 0, 10);
+		var response = produtoDomainService.consultarProdutosPaginado(filtro, 0, 10);
 
 		assertEquals(1, response.getConteudo().size());
 		assertEquals("Suco de Laranja", response.getConteudo().get(0).getNome());

@@ -16,6 +16,7 @@ import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioResponseDto;
 import com.example.demo.application.dtos.EditarUsuarioRequestDto;
 import com.example.demo.application.dtos.PaginaResponseDto;
+import com.example.demo.application.dtos.UsuarioFiltroRequestDto;
 import com.example.demo.application.dtos.UsuarioResponseDto;
 import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
@@ -26,6 +27,7 @@ import com.example.demo.domain.services.interfaces.UsuarioDomainService;
 import com.example.demo.infrastructure.components.JwtTokenComponent;
 import com.example.demo.infrastructure.repositories.PerfilRepository;
 import com.example.demo.infrastructure.repositories.UsuarioRepository;
+import com.example.demo.infrastructure.specifications.UsuarioSpecification;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -103,9 +105,11 @@ public class UsuarioDomainServiceImpl implements UsuarioDomainService {
 	}
 
 	@Override
-	public PaginaResponseDto<UsuarioResponseDto> consultarUsuarios(String username, int pagina, int tamanho) {
+	public PaginaResponseDto<UsuarioResponseDto> consultarUsuariosPaginado(UsuarioFiltroRequestDto filtro, int pagina,
+			int tamanho) {
 		var pageable = PageRequest.of(pagina, tamanho, Sort.by("username"));
-		var usuariosPage = usuarioRepository.findByUsernameContainingIgnoreCase(username, pageable);
+		var especificacao = UsuarioSpecification.filtrar(filtro);
+		var usuariosPage = usuarioRepository.findAll(especificacao, pageable);
 		return new PaginaResponseDto<>(usuariosPage.map(this::toUsuarioResponseDto));
 	}
 

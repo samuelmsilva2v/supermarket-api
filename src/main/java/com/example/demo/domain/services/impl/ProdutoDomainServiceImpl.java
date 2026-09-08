@@ -10,6 +10,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.application.dtos.PaginaResponseDto;
+import com.example.demo.application.dtos.ProdutoFiltroRequestDto;
 import com.example.demo.application.dtos.ProdutoRequestDto;
 import com.example.demo.application.dtos.ProdutoResponseDto;
 import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
@@ -18,6 +19,7 @@ import com.example.demo.domain.models.entities.Produto;
 import com.example.demo.domain.services.interfaces.ProdutoDomainService;
 import com.example.demo.infrastructure.repositories.CategoriaRepository;
 import com.example.demo.infrastructure.repositories.ProdutoRepository;
+import com.example.demo.infrastructure.specifications.ProdutoSpecification;
 
 import jakarta.persistence.EntityNotFoundException;
 
@@ -104,9 +106,11 @@ public class ProdutoDomainServiceImpl implements ProdutoDomainService {
 	}
 
 	@Override
-	public PaginaResponseDto<ProdutoResponseDto> consultarProdutoPorNome(String nome, int pagina, int tamanho) {
+	public PaginaResponseDto<ProdutoResponseDto> consultarProdutosPaginado(ProdutoFiltroRequestDto filtro, int pagina,
+			int tamanho) {
 		var pageable = PageRequest.of(pagina, tamanho, Sort.by("nome"));
-		var produtosPage = produtoRepository.findByNomeContaining(nome, pageable);
+		var especificacao = ProdutoSpecification.filtrar(filtro);
+		var produtosPage = produtoRepository.findAll(especificacao, pageable);
 		return new PaginaResponseDto<>(produtosPage.map(produto -> modelMapper.map(produto, ProdutoResponseDto.class)));
 	}
 

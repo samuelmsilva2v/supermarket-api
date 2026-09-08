@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.demo.application.dtos.PaginaResponseDto;
+import com.example.demo.application.dtos.ProdutoFiltroRequestDto;
 import com.example.demo.application.dtos.ProdutoRequestDto;
 import com.example.demo.application.dtos.ProdutoResponseDto;
 import com.example.demo.domain.models.entities.UnidadeMedida;
@@ -105,16 +106,18 @@ class ProdutoControllerTest {
 	}
 
 	@Test
-	void getByName_deveConsultarProdutosPorNomePaginado() {
+	void getByFiltro_deveConsultarProdutosPaginado() {
 
 		@SuppressWarnings("unchecked")
 		PaginaResponseDto<ProdutoResponseDto> pagina = org.mockito.Mockito.mock(PaginaResponseDto.class);
+		var filtro = new ProdutoFiltroRequestDto();
+		filtro.setNome("Suco");
 
-		when(produtoDomainService.consultarProdutoPorNome("Suco", 0, 10)).thenReturn(pagina);
+		when(produtoDomainService.consultarProdutosPaginado(filtro, 0, 10)).thenReturn(pagina);
 
-		var result = produtoController.getByName("Suco", 0, 10);
+		var result = produtoController.getByFiltro(filtro, 0, 10);
 
 		assertEquals(pagina, result);
-		verify(produtoDomainService, times(1)).consultarProdutoPorNome("Suco", 0, 10);
+		verify(produtoDomainService, times(1)).consultarProdutosPaginado(filtro, 0, 10);
 	}
 }

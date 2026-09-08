@@ -4,7 +4,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -22,12 +21,14 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.demo.application.dtos.AtualizarStatusUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.EditarUsuarioRequestDto;
+import com.example.demo.application.dtos.UsuarioFiltroRequestDto;
 import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
@@ -209,7 +210,7 @@ class UsuarioDomainServiceImplTest {
 	}
 
 	@Test
-	void consultarUsuarios_deveRetornarPaginaMapeada() {
+	void consultarUsuariosPaginado_deveRetornarPaginaMapeada() {
 
 		var usuario = new Usuario();
 		usuario.setId(UUID.randomUUID());
@@ -220,10 +221,12 @@ class UsuarioDomainServiceImplTest {
 		usuario.setPerfil(perfil);
 
 		var page = new PageImpl<>(List.of(usuario), PageRequest.of(0, 10), 1);
+		var filtro = new UsuarioFiltroRequestDto();
+		filtro.setUsername("joao");
 
-		when(usuarioRepository.findByUsernameContainingIgnoreCase(eq("joao"), any())).thenReturn(page);
+		when(usuarioRepository.findAll(any(Specification.class), any(PageRequest.class))).thenReturn(page);
 
-		var response = usuarioDomainService.consultarUsuarios("joao", 0, 10);
+		var response = usuarioDomainService.consultarUsuariosPaginado(filtro, 0, 10);
 
 		assertEquals(1, response.getConteudo().size());
 		assertEquals("joao.silva", response.getConteudo().get(0).getUsername());
