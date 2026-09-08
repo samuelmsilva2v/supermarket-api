@@ -11,14 +11,6 @@ import org.springframework.util.StringUtils;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Predicate;
 
-/**
- * Classe genérica e reutilizável para compor {@link Specification}s a partir de filtros opcionais.
- * Cada entidade tem sua própria classe de especificação (ex.: ProdutoSpecification, UsuarioSpecification)
- * que usa este builder para montar os filtros específicos dela, sem repetir a lógica de acesso ao
- * Criteria API nem a checagem de "filtro não informado" em cada campo.
- *
- * Suporta campos de entidades relacionadas via caminho com ponto (ex.: "categoria.id", "perfil.nome").
- */
 public class GenericSpecificationBuilder<T> {
 
 	private final List<Specification<T>> especificacoes = new ArrayList<>();
@@ -38,8 +30,6 @@ public class GenericSpecificationBuilder<T> {
 		return this;
 	}
 
-	// Casa o valor contra qualquer um dos campos informados (OR), útil quando um único campo de busca
-	// precisa cobrir mais de uma coluna (ex.: nome e sobrenome).
 	public GenericSpecificationBuilder<T> comTextoContendoEmAlgumCampo(String valor, String... campos) {
 		if (StringUtils.hasText(valor) && campos.length > 0) {
 			var valorBusca = "%" + valor.toLowerCase() + "%";

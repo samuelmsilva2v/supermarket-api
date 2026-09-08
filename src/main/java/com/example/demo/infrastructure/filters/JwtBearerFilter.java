@@ -35,7 +35,7 @@ public class JwtBearerFilter extends GenericFilterBean {
 		}
 
 		String uri = request.getRequestURI();
-		if (uri.equals("/api/usuario/autenticar")) {
+		if (uri.equals("/api/usuario/autenticar") || uri.equals("/api/usuario/esqueci-senha")) {
 			filterChain.doFilter(request, response);
 			return;
 		}
@@ -51,7 +51,9 @@ public class JwtBearerFilter extends GenericFilterBean {
 			final String token = authHeader.substring(7);
 			Claims claims = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
 
-			boolean restritoAAdministrador = uri.equals("/api/usuario") || uri.matches("/api/usuario/.+");
+			boolean autoatendimento = uri.equals("/api/usuario/me") || uri.equals("/api/usuario/me/senha");
+			boolean restritoAAdministrador = !autoatendimento
+					&& (uri.equals("/api/usuario") || uri.matches("/api/usuario/.+"));
 			if (restritoAAdministrador && !"Administrador".equals(claims.get("perfil", String.class))) {
 				response.sendError(HttpServletResponse.SC_FORBIDDEN, "Acesso restrito a administradores.");
 				return;

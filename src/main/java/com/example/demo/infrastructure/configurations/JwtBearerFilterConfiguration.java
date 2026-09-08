@@ -16,11 +16,8 @@ public class JwtBearerFilterConfiguration {
 	@Bean
 	FilterRegistrationBean<JwtBearerFilter> jwtFilter() {
 
-		// Registrando o filtro que irá validar os TOKENS
 		FilterRegistrationBean<JwtBearerFilter> filter = new FilterRegistrationBean<JwtBearerFilter>();
 		filter.setFilter(new JwtBearerFilter(jwtSecret));
-
-		// Aplicando o filtro em toda a API
 		filter.addUrlPatterns("/api/*");
 
 		return filter;

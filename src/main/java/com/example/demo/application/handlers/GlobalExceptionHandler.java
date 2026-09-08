@@ -11,6 +11,7 @@ import com.example.demo.domain.exceptions.CredenciaisInvalidasException;
 import com.example.demo.domain.exceptions.EstoqueInsuficienteException;
 import com.example.demo.domain.exceptions.ProdutoComEstoqueException;
 import com.example.demo.domain.exceptions.ProdutoComNomeDuplicadoException;
+import com.example.demo.domain.exceptions.SenhaAtualInvalidaException;
 import com.example.demo.domain.exceptions.UsuarioComEmailDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioComUsernameDuplicadoException;
 import com.example.demo.domain.exceptions.UsuarioInativoException;
@@ -77,6 +78,11 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UsuarioInativoException.class)
     public ResponseEntity<String> handleUsuarioInativo(UsuarioInativoException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
+
+    @ExceptionHandler(SenhaAtualInvalidaException.class)
+    public ResponseEntity<String> handleSenhaAtualInvalida(SenhaAtualInvalidaException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 

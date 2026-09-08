@@ -14,18 +14,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.demo.application.dtos.AlterarSenhaRequestDto;
 import com.example.demo.application.dtos.AtualizarStatusUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioRequestDto;
 import com.example.demo.application.dtos.AutenticarUsuarioResponseDto;
 import com.example.demo.application.dtos.CriarUsuarioRequestDto;
 import com.example.demo.application.dtos.CriarUsuarioResponseDto;
+import com.example.demo.application.dtos.EditarPerfilPropioRequestDto;
 import com.example.demo.application.dtos.EditarUsuarioRequestDto;
+import com.example.demo.application.dtos.EsqueciSenhaRequestDto;
 import com.example.demo.application.dtos.PaginaResponseDto;
 import com.example.demo.application.dtos.UsuarioFiltroRequestDto;
 import com.example.demo.application.dtos.UsuarioResponseDto;
 import com.example.demo.domain.services.interfaces.UsuarioDomainService;
 
+import io.jsonwebtoken.Claims;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 
 @RestController
@@ -45,6 +50,12 @@ public class UsuarioController {
 	@PostMapping("autenticar")
 	public AutenticarUsuarioResponseDto autenticar(@RequestBody @Valid AutenticarUsuarioRequestDto request) {
 		return usuarioDomainService.autenticarUsuario(request);
+	}
+
+	@Operation(summary = "Serviço para solicitar uma nova senha por e-mail, quando o usuário esquece a senha atual.")
+	@PostMapping("esqueci-senha")
+	public void esqueciSenha(@RequestBody @Valid EsqueciSenhaRequestDto request) {
+		usuarioDomainService.esqueciSenha(request);
 	}
 
 	@Operation(summary = "Serviço para consultar usuários por filtros (username, nome, status, perfil), paginado.")
@@ -73,5 +84,28 @@ public class UsuarioController {
 	public UsuarioResponseDto atualizarStatus(@PathVariable UUID id,
 			@RequestBody @Valid AtualizarStatusUsuarioRequestDto request) {
 		return usuarioDomainService.atualizarStatusUsuario(id, request);
+	}
+
+	@Operation(summary = "Serviço para o usuário autenticado consultar os próprios dados.")
+	@GetMapping("/me")
+	public UsuarioResponseDto getMe(HttpServletRequest httpRequest) {
+		var claims = (Claims) httpRequest.getAttribute("claims");
+		return usuarioDomainService.consultarPerfilProprio(claims.getSubject());
+	}
+
+	@Operation(summary = "Serviço para o usuário autenticado editar o próprio nome, sobrenome e e-mail.")
+	@PutMapping("/me")
+	public UsuarioResponseDto putMe(@RequestBody @Valid EditarPerfilPropioRequestDto request,
+			HttpServletRequest httpRequest) {
+		var claims = (Claims) httpRequest.getAttribute("claims");
+		return usuarioDomainService.editarPerfilProprio(claims.getSubject(), request);
+	}
+
+	@Operation(summary = "Serviço para o usuário autenticado trocar a própria senha.")
+	@PutMapping("/me/senha")
+	public UsuarioResponseDto putMeSenha(@RequestBody @Valid AlterarSenhaRequestDto request,
+			HttpServletRequest httpRequest) {
+		var claims = (Claims) httpRequest.getAttribute("claims");
+		return usuarioDomainService.alterarSenha(claims.getSubject(), request);
 	}
 }
