@@ -13,6 +13,8 @@ import com.example.demo.domain.models.entities.Categoria;
 
 public interface CategoriaRepository extends JpaRepository<Categoria, UUID> {
 
+	Categoria findByNome(String nome);
+
 	boolean existsByNome(String nome);
 
 	Page<Categoria> findByNomeContainingIgnoreCase(String nome, Pageable pageable);
